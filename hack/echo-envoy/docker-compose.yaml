@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+  envoy:
+    # image: envoyproxy/envoy-dev
+    image: envoyproxy/envoy:v1.21.2
+    ports:
+    - "9901:9901"
+    - "10000:10000"
+    - "10001:10001"
+    - "10002:10002"
+    - "10003:10003"
+    - "20000:20000"
+    - "20001:20001"
+    - "20002:20002"
+    - "20003:20003"
+    - "30000:30000"
+    - "30001:30001"
+    - "30002:30002"
+    - "30003:30003"
+    volumes:
+    - ../bootstrap-delta.yaml:/etc/envoy/envoy.yaml

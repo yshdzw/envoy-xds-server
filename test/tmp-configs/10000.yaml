@@ -1,0 +1,18 @@
+name: testconfig_10000
+spec: 
+  listeners:
+  - name: listener_10000
+    address: 0.0.0.0
+    port: 10000
+    routes:
+    - name: echoroute_10000
+      prefix: /10000
+      clusters:
+      - echo_10000
+  clusters:
+  - name: echo_10000
+    endpoints:
+    - address: 127.0.0.1
+      port: 10001
+    - address: 127.0.0.1
+      port: 10002

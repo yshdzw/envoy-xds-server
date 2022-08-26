@@ -1,4 +1,4 @@
-# Base config for a split xDS management server on 9002, admin port on 9003
+# Base config for a split xDS management server on 9977, admin port on 9901
 static_resources:
   clusters:
     - connect_timeout: 1s
@@ -9,15 +9,15 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 127.0.0.1
-                      port_value: 9000
+                      address: 192.168.233.233 # You VM IP
+                      port_value: 9977
       http2_protocol_options: {}
       name: xds_cluster
 dynamic_resources:
   cds_config:
     resource_api_version: V3
     api_config_source:
-      api_type: GRPC
+      api_type: DELTA_GRPC
       transport_api_version: V3
       grpc_services:
         - envoy_grpc:
@@ -26,7 +26,7 @@ dynamic_resources:
   lds_config:
     resource_api_version: V3
     api_config_source:
-      api_type: GRPC
+      api_type: DELTA_GRPC
       transport_api_version: V3
       grpc_services:
         - envoy_grpc:
@@ -43,7 +43,7 @@ layered_runtime:
           resource_api_version: V3
           api_config_source:
             transport_api_version: V3
-            api_type: GRPC
+            api_type: DELTA_GRPC
             grpc_services:
               envoy_grpc:
                 cluster_name: xds_cluster
@@ -52,5 +52,5 @@ admin:
   access_log_path: /dev/null
   address:
     socket_address:
-      address: 127.0.0.1
+      address: 0.0.0.0
       port_value: 9901

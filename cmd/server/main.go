@@ -42,7 +42,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 
 	// The port that this xDS server listens on
-	flag.UintVar(&port, "port", 9002, "xDS management server port")
+	flag.UintVar(&port, "port", 9977, "xDS management server port")
 
 	// Tell Envoy to use this Node ID
 	flag.StringVar(&nodeID, "nodeID", "test-id", "Node ID")
@@ -54,12 +54,15 @@ func init() {
 func main() {
 	flag.Parse()
 
+	// Context
+	ctx := context.Background()
+
 	// Create a cache
 	cache := cache.NewSnapshotCache(false, cache.IDHash{}, l)
 
 	// Create a processor
 	proc := processor.NewProcessor(
-		cache, nodeID, log.WithField("context", "processor"))
+		ctx, cache, nodeID, log.WithField("context", "processor"))
 
 	// Create initial snapshot from file
 	proc.ProcessFile(watcher.NotifyMessage{

@@ -15,6 +15,7 @@
 package processor
 
 import (
+	"context"
 	"math"
 	"math/rand"
 	"os"
@@ -23,6 +24,7 @@ import (
 	"github.com/stevesloka/envoy-xds-server/internal/resources"
 
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 
 	"github.com/stevesloka/envoy-xds-server/internal/xdscache"
 
@@ -32,6 +34,7 @@ import (
 )
 
 type Processor struct {
+	ctx    context.Context
 	cache  cache.SnapshotCache
 	nodeID string
 
@@ -43,8 +46,9 @@ type Processor struct {
 	xdsCache xdscache.XDSCache
 }
 
-func NewProcessor(cache cache.SnapshotCache, nodeID string, log logrus.FieldLogger) *Processor {
+func NewProcessor(ctx context.Context, cache cache.SnapshotCache, nodeID string, log logrus.FieldLogger) *Processor {
 	return &Processor{
+		ctx:             ctx,
 		cache:           cache,
 		nodeID:          nodeID,
 		snapshotVersion: rand.Int63n(1000),
@@ -91,6 +95,7 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 
 		p.xdsCache.AddListener(l.Name, lRoutes, l.Address, l.Port)
 
+		// Parse Routes
 		for _, r := range l.Routes {
 			p.xdsCache.AddRoute(r.Name, r.Prefix, r.ClusterNames)
 		}
@@ -106,16 +111,17 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 		}
 	}
 
+	resources := map[string][]types.Resource{
+		resource.EndpointType: p.xdsCache.EndpointsContents(), // endpoints
+		resource.ClusterType:  p.xdsCache.ClusterContents(),   // clusters
+		resource.RouteType:    p.xdsCache.RouteContents(),     // routes
+		resource.ListenerType: p.xdsCache.ListenerContents(),  // listeners
+		resource.RuntimeType:  {},                             // runtimes
+		resource.SecretType:   {},                             // secrets
+	}
+
 	// Create the snapshot that we'll serve to Envoy
-	snapshot := cache.NewSnapshot(
-		p.newSnapshotVersion(),         // version
-		p.xdsCache.EndpointsContents(), // endpoints
-		p.xdsCache.ClusterContents(),   // clusters
-		p.xdsCache.RouteContents(),     // routes
-		p.xdsCache.ListenerContents(),  // listeners
-		[]types.Resource{},             // runtimes
-		[]types.Resource{},             // secrets
-	)
+	snapshot, _ := cache.NewSnapshot(p.newSnapshotVersion(), resources)
 
 	if err := snapshot.Consistent(); err != nil {
 		p.Errorf("snapshot inconsistency: %+v\n\n\n%+v", snapshot, err)
@@ -124,7 +130,7 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 	p.Debugf("will serve snapshot %+v", snapshot)
 
 	// Add the snapshot to the cache
-	if err := p.cache.SetSnapshot(p.nodeID, snapshot); err != nil {
+	if err := p.cache.SetSnapshot(p.ctx, p.nodeID, snapshot); err != nil {
 		p.Errorf("snapshot error %q for %+v", err, snapshot)
 		os.Exit(1)
 	}

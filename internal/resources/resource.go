@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -40,7 +41,7 @@ func MakeCluster(clusterName string) *cluster.Cluster {
 		ConnectTimeout:       ptypes.DurationProto(5 * time.Second),
 		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
 		LbPolicy:             cluster.Cluster_ROUND_ROBIN,
-		//LoadAssignment:       makeEndpoint(clusterName, UpstreamHost),
+		// LoadAssignment:       makeEndpoint(clusterName, UpstreamHost),
 		DnsLookupFamily:  cluster.Cluster_V4_ONLY,
 		EdsClusterConfig: makeEDSCluster(),
 	}
@@ -88,7 +89,7 @@ func MakeRoute(routes []Route) *route.RouteConfiguration {
 
 	for _, r := range routes {
 		rts = append(rts, &route.Route{
-			//Name: r.Name,
+			Name: r.Name,
 			Match: &route.RouteMatch{
 				PathSpecifier: &route.RouteMatch_Prefix{
 					Prefix: r.Prefix,
@@ -129,7 +130,8 @@ func MakeHTTPListener(listenerName, route, address string, port uint32) *listene
 			Name: wellknown.Router,
 		}},
 	}
-	pbst, err := ptypes.MarshalAny(manager)
+	// pbst, err := ptypes.MarshalAny(manager)
+	pbst, err := anypb.New(manager)
 	if err != nil {
 		panic(err)
 	}

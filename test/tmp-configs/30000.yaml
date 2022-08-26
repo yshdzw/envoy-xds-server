@@ -1,0 +1,18 @@
+name: testconfig_30000
+spec: 
+  listeners:
+  - name: listener_30000
+    address: 0.0.0.0
+    port: 30000
+    routes:
+    - name: echoroute_30000
+      prefix: /30000
+      clusters:
+      - echo_30000
+  clusters:
+  - name: echo_30000
+    endpoints:
+    - address: 127.0.0.1
+      port: 30001
+    - address: 127.0.0.1
+      port: 30002
