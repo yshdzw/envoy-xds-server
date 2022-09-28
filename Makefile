@@ -1,4 +1,5 @@
 MODULE = github.com/stevesloka/envoy-xds-server
+CONFIGS = test/configs
 
 GO_BUILD_VARS = \
 	github.com/projectcontour/contour/internal/build.Version=${BUILD_VERSION} \
@@ -9,9 +10,9 @@ GO_LDFLAGS := -s -w $(patsubst %,-X %, $(GO_BUILD_VARS))
 
 build:
 	mkdir -p build
-	mkdir -p configs
+	mkdir -p $(CONFIGS)
 	go build -o build/bin/envoy-xds-server -mod=readonly -v -ldflags="$(GO_LDFLAGS)" $(MODULE)/cmd/server
 
 clean:
 	rm -rf build
-	rm test/configs/*
+	rm -rf $(CONFIGS)
