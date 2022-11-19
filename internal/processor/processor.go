@@ -76,6 +76,10 @@ func (p *Processor) newSnapshotVersion() string {
 	return strconv.FormatInt(p.snapshotVersion, 10)
 }
 
+func (p *Processor) GetSnapshotVersion() int64 {
+	return p.snapshotVersion
+}
+
 // ProcessFile takes a file and generates an xDS snapshot
 func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 
@@ -116,8 +120,8 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 		resource.ClusterType:  p.xdsCache.ClusterContents(),   // clusters
 		resource.RouteType:    p.xdsCache.RouteContents(),     // routes
 		resource.ListenerType: p.xdsCache.ListenerContents(),  // listeners
-		resource.RuntimeType:  {},                             // runtimes
-		resource.SecretType:   {},                             // secrets
+		// resource.RuntimeType:  {},                             // runtimes
+		// resource.SecretType:   {},                             // secrets
 	}
 
 	// Create the snapshot that we'll serve to Envoy
